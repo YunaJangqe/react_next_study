@@ -1,16 +1,13 @@
 import BookItem from "@/components/book-item";
+import BookListSkeleton from "@/components/skeleton/book-list-skeleton";
 import { BookData } from "@/types";
 import { delay } from "@/util/delay";
+import { Suspense } from "react";
 
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string }>;
-}) {
-  const { q } = await searchParams;
+export async function SearchResult({q} : {q: string}) {  
   await delay(1500);
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_LOCAL_URL}/book/search?q=${q}`,
-    { cache: "force-cache" }
+    { cache: "no-store" }
   );
   if(!response.ok) {
     <div>오류가 발생했습니다...</div>
@@ -25,4 +22,15 @@ export default async function Page({
       ))}
     </div>
   );
+}
+
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
+  return <Suspense key={q || ""} fallback={<BookListSkeleton count={3}/>}>
+          <SearchResult q={q || ""} />
+        </Suspense>
 }
